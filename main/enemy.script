@@ -1,0 +1,38 @@
+function get_player_position()
+	local player_position = go.get_position("go")
+	return player_position
+end
+function spawn_enemy()
+	local enemy_position = vmath.vector3(math.random(0, 900), 700, 0)  -- Random x position within a range
+	local enemy_instance = factory.create("#enemy.factory", enemy_position)
+
+	if enemy_instance then
+		local player_position = get_player_position()
+
+		if player_position then
+			local direction = vmath.normalize(player_position - enemy_position)
+
+			-- Animate the enemy towards the player
+			go.animate(enemy_instance, "position", go.PLAYBACK_ONCE_FORWARD, position.y, go.EASING_LINEAR, 2, 0, function()
+				-- Animation complete callback, you can add additional logic here if needed
+			end)
+		else
+			print("Player not found.")
+		end
+	else
+		print("Failed to spawn enemy")
+	end
+end
+function init(self)
+	timer.delay(1, true, function()
+		spawn_enemy()
+	end)
+	timer.delay(1, true, function()
+		factory.create("#enemybulletfactory")
+	end)
+end	
+function on_message(self, message_id, message, sender)
+	if message_id==hash("trigger_response")and message.enter then
+		go.delete()
+	end
+end
